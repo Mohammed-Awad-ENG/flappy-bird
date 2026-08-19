@@ -11,22 +11,58 @@
         <canvas id="gameCanvas" width="400" height="600"></canvas>
         <div id="ui-layer">
             <div id="start-screen" class="screen">
-                <h1>Flappy Bird</h1>
-                <p>Press Space or Click to Flap</p>
-                <div class="stats">
-                    <p>Best Score: <span id="start-best-score">0</span></p>
-                    <p>Attempts: <span id="start-attempts">0</span></p>
+                <div class="menu-panel">
+                    <h1>Flappy Bird</h1>
+                    <p>Press Space or Click to Flap</p>
+                    <div class="stats">
+                        <p>Best Score: <span id="start-best-score">0</span></p>
+                        <p>Attempts: <span id="start-attempts">0</span></p>
+                    </div>
+                    <div class="settings-group">
+                        <p class="settings-label">Graphics:</p>
+                        <div class="difficulty-select">
+                            <button id="gfx-low" class="diff-btn">Low</button>
+                            <button id="gfx-medium" class="diff-btn active">Medium</button>
+                            <button id="gfx-high" class="diff-btn">High</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <p class="settings-label">Difficulty:</p>
+                        <div class="difficulty-select">
+                            <button id="diff-easy" class="diff-btn">Easy</button>
+                            <button id="diff-medium" class="diff-btn active">Medium</button>
+                            <button id="diff-hard" class="diff-btn">Hard</button>
+                        </div>
+                    </div>
+                    <button id="start-btn">Start Game</button>
                 </div>
-                <button id="start-btn">Start Game</button>
             </div>
             <div id="game-over-screen" class="screen hidden">
-                <h1>Game Over!</h1>
-                <p>Score: <span id="final-score">0</span></p>
-                <div class="stats">
-                    <p>Best Score: <span id="game-over-best-score">0</span></p>
-                    <p>Attempts: <span id="game-over-attempts">0</span></p>
+                <div class="menu-panel">
+                    <h1>Game Over!</h1>
+                    <p>Score: <span id="final-score">0</span></p>
+                    <div class="stats">
+                        <p>Best Score: <span id="game-over-best-score">0</span></p>
+                        <p>Attempts: <span id="game-over-attempts">0</span></p>
+                    </div>
+                    <div class="settings-group">
+                        <p class="settings-label">Graphics:</p>
+                        <div class="difficulty-select">
+                            <button id="go-gfx-low" class="diff-btn">Low</button>
+                            <button id="go-gfx-medium" class="diff-btn active">Medium</button>
+                            <button id="go-gfx-high" class="diff-btn">High</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <p class="settings-label">Difficulty:</p>
+                        <div class="difficulty-select">
+                            <button id="go-diff-easy" class="diff-btn">Easy</button>
+                            <button id="go-diff-medium" class="diff-btn active">Medium</button>
+                            <button id="go-diff-hard" class="diff-btn">Hard</button>
+                        </div>
+                    </div>
+                    <button id="restart-btn">Play Again</button>
                 </div>
-                <button id="restart-btn">Play Again</button>
             </div>
             <div id="score-display">0</div>
         </div>

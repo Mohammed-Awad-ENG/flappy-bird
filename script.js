@@ -1,9 +1,13 @@
 const images = {
     bird: new Image(),
-    background: new Image()
+    background: new Image(),
+    highBird: new Image(),
+    highBackground: new Image()
 };
 images.bird.src = 'assets/bird.png';
 images.background.src = 'assets/background.png';
+images.highBird.src = 'assets/ultra_bird.png';
+images.highBackground.src = 'assets/ultra_background.png';
 
 function removeWhiteBackground(image) {
     const tempCanvas = document.createElement('canvas');
@@ -33,7 +37,7 @@ let assetsLoaded = 0;
 const totalAssets = Object.keys(images).length;
 for (let key in images) {
     images[key].onload = () => {
-        if (key === 'bird') {
+        if (key === 'bird' || key === 'highBird') {
             images[key] = removeWhiteBackground(images[key]);
         }
         assetsLoaded++;
@@ -128,10 +132,105 @@ const startAttemptsDisplay = document.getElementById('start-attempts');
 const gameOverBestScoreDisplay = document.getElementById('game-over-best-score');
 const gameOverAttemptsDisplay = document.getElementById('game-over-attempts');
 
-let bestScore = parseInt(localStorage.getItem('flappyBirdBestScore')) || 0;
+const diffEasyBtn = document.getElementById('diff-easy');
+const diffMediumBtn = document.getElementById('diff-medium');
+const diffHardBtn = document.getElementById('diff-hard');
+
+const goDiffEasyBtn = document.getElementById('go-diff-easy');
+const goDiffMediumBtn = document.getElementById('go-diff-medium');
+const goDiffHardBtn = document.getElementById('go-diff-hard');
+
+const gfxLowBtn = document.getElementById('gfx-low');
+const gfxMediumBtn = document.getElementById('gfx-medium');
+const gfxHighBtn = document.getElementById('gfx-high');
+
+const goGfxLowBtn = document.getElementById('go-gfx-low');
+const goGfxMediumBtn = document.getElementById('go-gfx-medium');
+const goGfxHighBtn = document.getElementById('go-gfx-high');
+
+const difficulties = {
+    easy: { gap: 280, dx: 1.2, gravity: 0.12, jump: -4.0 },
+    medium: { gap: 220, dx: 1.5, gravity: 0.15, jump: -4.5 },
+    hard: { gap: 160, dx: 2.2, gravity: 0.2, jump: -5.5 }
+};
+let currentDifficulty = 'medium';
+let currentGraphics = 'medium';
+let bestScore = 0;
 let attempts = parseInt(localStorage.getItem('flappyBirdAttempts')) || 0;
 
-startBestScoreDisplay.innerText = bestScore;
+function updateBestScoreDisplay() {
+    bestScore = parseInt(localStorage.getItem(`flappyBirdBestScore_${currentDifficulty}`)) || 0;
+    if (currentDifficulty === 'medium' && !localStorage.getItem('flappyBirdBestScore_medium') && localStorage.getItem('flappyBirdBestScore')) {
+        bestScore = parseInt(localStorage.getItem('flappyBirdBestScore'));
+        localStorage.setItem('flappyBirdBestScore_medium', bestScore);
+    }
+    startBestScoreDisplay.innerText = bestScore;
+}
+
+function setDifficulty(diff) {
+    currentDifficulty = diff;
+    diffEasyBtn.classList.remove('active');
+    diffMediumBtn.classList.remove('active');
+    diffHardBtn.classList.remove('active');
+    goDiffEasyBtn.classList.remove('active');
+    goDiffMediumBtn.classList.remove('active');
+    goDiffHardBtn.classList.remove('active');
+    
+    if (diff === 'easy') {
+        diffEasyBtn.classList.add('active');
+        goDiffEasyBtn.classList.add('active');
+    }
+    if (diff === 'medium') {
+        diffMediumBtn.classList.add('active');
+        goDiffMediumBtn.classList.add('active');
+    }
+    if (diff === 'hard') {
+        diffHardBtn.classList.add('active');
+        goDiffHardBtn.classList.add('active');
+    }
+    
+    updateBestScoreDisplay();
+}
+
+function setGraphics(gfx) {
+    currentGraphics = gfx;
+    gfxLowBtn.classList.remove('active');
+    gfxMediumBtn.classList.remove('active');
+    gfxHighBtn.classList.remove('active');
+    goGfxLowBtn.classList.remove('active');
+    goGfxMediumBtn.classList.remove('active');
+    goGfxHighBtn.classList.remove('active');
+    
+    if (gfx === 'low') {
+        gfxLowBtn.classList.add('active');
+        goGfxLowBtn.classList.add('active');
+    }
+    if (gfx === 'medium') {
+        gfxMediumBtn.classList.add('active');
+        goGfxMediumBtn.classList.add('active');
+    }
+    if (gfx === 'high') {
+        gfxHighBtn.classList.add('active');
+        goGfxHighBtn.classList.add('active');
+    }
+}
+
+diffEasyBtn.addEventListener('click', () => setDifficulty('easy'));
+diffMediumBtn.addEventListener('click', () => setDifficulty('medium'));
+diffHardBtn.addEventListener('click', () => setDifficulty('hard'));
+goDiffEasyBtn.addEventListener('click', () => setDifficulty('easy'));
+goDiffMediumBtn.addEventListener('click', () => setDifficulty('medium'));
+goDiffHardBtn.addEventListener('click', () => setDifficulty('hard'));
+
+gfxLowBtn.addEventListener('click', () => setGraphics('low'));
+gfxMediumBtn.addEventListener('click', () => setGraphics('medium'));
+gfxHighBtn.addEventListener('click', () => setGraphics('high'));
+
+goGfxLowBtn.addEventListener('click', () => setGraphics('low'));
+goGfxMediumBtn.addEventListener('click', () => setGraphics('medium'));
+goGfxHighBtn.addEventListener('click', () => setGraphics('high'));
+
+updateBestScoreDisplay();
 startAttemptsDisplay.innerText = attempts;
 
 let gameState = 'START';
@@ -155,7 +254,17 @@ const bird = {
         this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (this.velocity * 0.1)));
         ctx.rotate(this.rotation);
         if (assetsLoaded === totalAssets) {
-            ctx.drawImage(images.bird, -this.w / 2, -this.h / 2, this.w, this.h);
+            if (currentGraphics === 'low') {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+            } else if (currentGraphics === 'high') {
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(images.highBird, -this.w / 2, -this.h / 2, this.w, this.h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(images.bird, -this.w / 2, -this.h / 2, this.w, this.h);
+            }
         } else {
             ctx.fillStyle = 'yellow';
             ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
@@ -201,29 +310,90 @@ const pipes = {
         const bodyWidth = this.w - 12;
         const bodyX = x + 6;
         
-        const gradient = ctx.createLinearGradient(x, 0, x + this.w, 0);
-        gradient.addColorStop(0, '#115a11');
-        gradient.addColorStop(0.15, '#75e63b');
-        gradient.addColorStop(0.4, '#38b71d');
-        gradient.addColorStop(1, '#0e4a0e');
+        ctx.save();
+        if (currentGraphics === 'low') {
+            ctx.fillStyle = '#38b71d';
+            if (isTop) {
+                ctx.fillRect(bodyX, 0, bodyWidth, y - capHeight);
+                ctx.fillRect(x, y - capHeight, this.w, capHeight);
+            } else {
+                ctx.fillRect(x, y, this.w, capHeight);
+                ctx.fillRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+            }
+        } else if (currentGraphics === 'high') {
+            const metalGrad = ctx.createLinearGradient(x, 0, x + this.w, 0);
+            metalGrad.addColorStop(0, '#0f172a');
+            metalGrad.addColorStop(0.15, '#334155');
+            metalGrad.addColorStop(0.3, '#94a3b8');
+            metalGrad.addColorStop(0.6, '#1e293b');
+            metalGrad.addColorStop(1, '#020617');
 
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = '#052905';
-        ctx.lineWidth = 4;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 0;
 
-        if (isTop) {
-            ctx.fillRect(bodyX, 0, bodyWidth, y - capHeight);
-            ctx.strokeRect(bodyX, 0, bodyWidth, y - capHeight);
-            
-            ctx.fillRect(x, y - capHeight, this.w, capHeight);
-            ctx.strokeRect(x, y - capHeight, this.w, capHeight);
+            if (isTop) {
+                // Body
+                ctx.fillStyle = metalGrad;
+                ctx.strokeStyle = '#020617';
+                ctx.fillRect(bodyX, 0, bodyWidth, y - capHeight);
+                ctx.strokeRect(bodyX, 0, bodyWidth, y - capHeight);
+
+                // Cap
+                ctx.fillRect(x, y - capHeight, this.w, capHeight);
+                ctx.strokeRect(x, y - capHeight, this.w, capHeight);
+
+                // Neon Ring
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.fillRect(x - 2, y - 10, this.w + 4, 5);
+                ctx.shadowBlur = 0;
+            } else {
+                // Cap
+                ctx.fillStyle = metalGrad;
+                ctx.strokeStyle = '#020617';
+                ctx.fillRect(x, y, this.w, capHeight);
+                ctx.strokeRect(x, y, this.w, capHeight);
+
+                // Neon Ring
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.fillRect(x - 2, y + 5, this.w + 4, 5);
+                ctx.shadowBlur = 0;
+
+                // Body
+                ctx.fillStyle = metalGrad;
+                ctx.strokeStyle = '#020617';
+                ctx.fillRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+                ctx.strokeRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+            }
         } else {
-            ctx.fillRect(x, y, this.w, capHeight);
-            ctx.strokeRect(x, y, this.w, capHeight);
-            
-            ctx.fillRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
-            ctx.strokeRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+            const gradient = ctx.createLinearGradient(x, 0, x + this.w, 0);
+            gradient.addColorStop(0, '#115a11');
+            gradient.addColorStop(0.15, '#75e63b');
+            gradient.addColorStop(0.4, '#38b71d');
+            gradient.addColorStop(1, '#0e4a0e');
+
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = '#052905';
+            ctx.lineWidth = 4;
+
+            if (isTop) {
+                ctx.fillRect(bodyX, 0, bodyWidth, y - capHeight);
+                ctx.strokeRect(bodyX, 0, bodyWidth, y - capHeight);
+                
+                ctx.fillRect(x, y - capHeight, this.w, capHeight);
+                ctx.strokeRect(x, y - capHeight, this.w, capHeight);
+            } else {
+                ctx.fillRect(x, y, this.w, capHeight);
+                ctx.strokeRect(x, y, this.w, capHeight);
+                
+                ctx.fillRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+                ctx.strokeRect(bodyX, y + capHeight, bodyWidth, canvas.height - y - capHeight);
+            }
         }
+        ctx.restore();
     },
 
     draw() {
@@ -280,14 +450,21 @@ const pipes = {
 };
 
 function drawBackground() {
+    if (currentGraphics === 'low') {
+        ctx.fillStyle = '#70c5ce';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+
     if (assetsLoaded === totalAssets) {
-        const bgRatio = images.background.width / images.background.height;
+        let bgImg = currentGraphics === 'high' ? images.highBackground : images.background;
+        const bgRatio = bgImg.width / bgImg.height;
         const drawWidth = Math.ceil(canvas.height * bgRatio);
         
         const numImages = Math.ceil(canvas.width / drawWidth) + 1;
         
         for (let i = 0; i < numImages; i++) {
-            ctx.drawImage(images.background, bgX + (i * drawWidth), 0, drawWidth, canvas.height);
+            ctx.drawImage(bgImg, bgX + (i * drawWidth), 0, drawWidth, canvas.height);
         }
         
         if (gameState === 'PLAYING') {
@@ -329,6 +506,12 @@ function startGame() {
     gameOverScreen.classList.add('hidden');
     scoreDisplay.classList.remove('hidden');
     scoreDisplay.innerText = '0';
+    
+    bird.gravity = difficulties[currentDifficulty].gravity;
+    bird.jump = difficulties[currentDifficulty].jump;
+    pipes.gap = difficulties[currentDifficulty].gap;
+    pipes.dx = difficulties[currentDifficulty].dx;
+    
     bird.reset();
     pipes.reset();
     score = 0;
@@ -350,7 +533,7 @@ function gameOver() {
     
     if (score > bestScore) {
         bestScore = score;
-        localStorage.setItem('flappyBirdBestScore', bestScore);
+        localStorage.setItem(`flappyBirdBestScore_${currentDifficulty}`, bestScore);
     }
     
     gameOverBestScoreDisplay.innerText = bestScore;
